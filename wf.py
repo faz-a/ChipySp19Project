@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 14 22:36:41 2019
-
 @author: Fazal
 """
 
@@ -10,6 +9,7 @@ import requests, matplotlib, pytz
 import numpy as np
 import datetime as dt
 from datetime import date
+from datetime import datetime
 #from pytz import timezone
 #import pytz
 #from tzlocal import get_localzone
@@ -32,6 +32,7 @@ def get_epoch(aYear, aMonth):
     utcDiff = datetime.utcnow()- datetime.now()
     dt_local = dt.datetime(aYear, aMonth, 1, 0, 0) 
     dt_utc = dt_local - utcDiff
+    print('dt_local is', dt_local.timestamp(), 'and dt_utc is', dt_utc.timestamp())
     return int(dt_utc.timestamp())
 
 
