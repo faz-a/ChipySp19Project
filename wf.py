@@ -11,6 +11,7 @@ from datetime import date
 from datetime import datetime
 from pytz import timezone
 from tzlocal import get_localzone
+import pandas as pd
 
 def get_response(q, after, before):
     parameters = {"q":q,"aggs":aggs, "frequency":frequency, "size":size, "after":after, "before":before}
@@ -47,19 +48,30 @@ data_aggs = get_response(q, after, before)
 data_created_utc = data_aggs['aggs']
 data_bucketed = data_created_utc['created_utc']
 
-#utc = pytz.utc #later, but this and the next line and the for loop in a functions(s)
-counts, timestamps = [], []
-for e in data_bucketed:
-    counts.append(e['doc_count'])
-    timestamps.append(get_utc_dt(e['key']))
-#    timestamps.append(date.fromtimestamp(e['key']))
-#    utc.localize(timestamps[-1])
-counts_array = np.array(counts)
-timestamps_array = np.array(timestamps)
-print(counts_array, timestamps_array)
+def return_arrays(bucketed_counts, reverse):
+    """takes in a list of dictionaries; returns a pandas dataframe"""
+    d1 = list(bucketed_counts[0].keys())
+#    if "count" in d1:
+#        d1.sort()
+#    elif "doc_count" in d1
+#        d1.sort(reverse = True)
+#    else:
+#        #raise an error...
+    d1.sort(reverse = reverse)
+    count, timestamp = d1[1], d1[0]
+    counts, timestamps = [], []
+    for e in bucketed_counts: #here, it means "for e in data_bucketed"
+        counts.append(e[count])
+        print("e:", e, "count:", count, "timestamp:", timestamp, "type(count):", type(count), "type(timestamp):", type(timestamp))
+        print('count: ', e[count])
+        print('timestamp: ', e[timestamp])
+        timestamps.append(get_utc_dt(e[timestamp]))
+    df = pd.DataFrame()
+    #df['Counts'], df['Timestamps'] = counts, timestamps
+    df['Timestamps'], df['Counts'] = timestamps, counts
+    return df
 
-matplotlib.pyplot.title('Reddit Comments with the Term per Month')
-matplotlib.pyplot.xlabel('Year')
-matplotlib.pyplot.ylabel('Comments per Month')
-matplotlib.pyplot.plot(timestamps_array, counts_array)
-matplotlib.pyplot.show()
+
+dataframe = return_arrays(data_bucketed, True)
+dataframe.set_index('Timestamps', inplace=True)
+dataframe.plot()
