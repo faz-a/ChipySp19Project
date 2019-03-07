@@ -78,15 +78,17 @@ for e in q_tuple:
     else:
         counter += 1
         e.append(get_response_term(e[0], after, before)['aggs']['created_utc'])
+        if e[1] == []:
+            counter -=1
 ''' end of new attempt - to take in three terms'''
 
 ''' write a left-join loop; run it while q_tuple[-][0] != '""' '''
-df_all = (return_arrays(get_response_all(), True))
+df_all = (return_arrays(get_response_all(), True).groupby(pd.Grouper(key='Timestamps', freq='MS')).sum())
 df_term = return_arrays(q_tuple[0][1], True)
-if q_tuple[1][0] != '""':
+if q_tuple[1][0] != '""' and len(q_tuple[1][1]) > 0:
     df_term = df_term.merge(return_arrays(q_tuple[1][1], True), on = 'Timestamps', how = 'left')#, suffixes=(q_tuple[0][0], q_tuple[1][0]))
 if q_tuple[2] != []:
-    if q_tuple[2][0] != '""':
+    if q_tuple[2][0] != '""' and len(q_tuple[2][1]) > 0:
         df_term = df_term.merge(return_arrays(q_tuple[2][1], True), on = 'Timestamps', how = 'left')
 
 mapping = {df_term.columns[0]:'Timestamps'}
@@ -94,7 +96,7 @@ for i in range(counter):
     mapping[df_term.columns[i+1]] = q_tuple[i][0][1:-1]
     
 df_term = df_term.rename(columns = mapping)
-df_merged = df_term.merge(df_all, on = 'Timestamps', how = 'left')
+df_merged = df_term.merge(df_all, left_on = 'Timestamps', right_index = True, how = 'left')
 df_plot = pd.DataFrame()
 df_plot['Timestamps'] = df_merged['Timestamps']
 for i in range(counter):
@@ -103,7 +105,6 @@ for i in range(counter):
 df_plot.plot(x = 'Timestamps')
         
 ''' '''
-'''********* IF ONE/THREE TERMS HAS MISSING MONTHS, WILL ERROR************'''
 
 #data_bucketed = get_response_term(q, after, before)['aggs']['created_utc']
 #
