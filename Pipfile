@@ -17,6 +17,7 @@ dj-database-url = "*"
 gunicorn = "*"
 whitenoise = "*"
 psycopg2 = "*"
+bokeh = "*"
 
 [requires]
 python_version = "3.6"
